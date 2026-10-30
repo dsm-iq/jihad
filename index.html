@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة الأستاذ جهاد بيك | كيمياء السادس العلمي</title>
+    
+    <!-- خط Cairo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { DEFAULT: '#0D9488', dark: '#0F766E', light: '#CCFBF1' }
+                    },
+                    fontFamily: { arabic: ['Cairo', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body x-data="jihadPlatform()" x-init="initPlatform()" :class="darkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-800'" class="min-h-screen flex flex-col transition-colors duration-300">
+
+    <!-- شريط التنقل العلوي الكلاسيكي -->
+    <header :class="darkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-900 border-slate-800'" class="text-white sticky top-0 z-40 shadow-md border-b">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3 cursor-pointer" @click="handleLogoClick()">
+                <div class="w-10 h-10 bg-teal-600 text-white font-bold text-lg rounded-xl flex items-center justify-center shadow">جـ</div>
+                <div>
+                    <h1 class="font-bold text-base tracking-wide leading-tight">منصة الأستاذ جهاد بيك</h1>
+                    <p class="text-[11px] text-teal-400 font-medium">كيمياء السادس العلمي</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+                <!-- زر تبديل الوضع (الليلي والنهاري) -->
+                <button @click="toggleDarkMode()" class="bg-slate-800 hover:bg-slate-700 text-teal-400 p-2 rounded-xl border border-slate-700 transition flex items-center justify-center text-xs" title="تبديل المظهر">
+                    <span x-text="darkMode ? '☀️' : '🌙'"></span>
+                </button>
+
+                <!-- أيقونة الإشعارات -->
+                <div class="relative" x-data="{ openNotif: false }">
+                    <button @click="openNotif = !openNotif" class="relative bg-slate-800 hover:bg-slate-700 text-teal-400 p-2 rounded-xl border border-slate-700 transition flex items-center justify-center text-xs">
+                        🔔
+                        <span x-show="notifications.length > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow animate-bounce" x-text="notifications.length"></span>
+                    </button>
+
+                    <!-- قائمة الإشعارات -->
+                    <div x-show="openNotif" @click.outside="openNotif = false" :class="darkMode ? 'bg-slate-900 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-800'" class="absolute left-0 mt-2 w-72 rounded-2xl shadow-xl border overflow-hidden z-50 p-3 space-y-2.5" x-cloak>
+                        <div class="flex justify-between items-center border-b pb-2 border-slate-700 text-xs">
+                            <span class="font-bold">🔔 الإشعارات الجديدة</span>
+                            <button @click="clearNotifications" class="text-[11px] text-red-400 hover:underline">حذف الكل</button>
+                        </div>
+                        <div class="max-h-52 overflow-y-auto space-y-2">
+                            <template x-for="notif in notifications" :key="notif.id">
+                                <div :class="darkMode ? 'bg-slate-800/80 border-teal-500/30' : 'bg-teal-50 border-teal-200'" class="p-2.5 rounded-xl border space-y-1">
+                                    <p class="text-xs font-bold" x-text="notif.title"></p>
+                                    <p :class="darkMode ? 'text-slate-300' : 'text-slate-600'" class="text-[11px]" x-text="notif.desc"></p>
+                                    <span class="text-[9px] text-slate-400 block" x-text="notif.date"></span>
+                                </div>
+                            </template>
+                            <template x-if="notifications.length === 0">
+                                <p class="text-center text-xs text-slate-400 py-3">لا توجد إشعارات جديدة</p>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- تبويبات الطلاب الكلاسيكية -->
+        <nav :class="darkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-800 border-slate-800'" class="border-t overflow-x-auto">
+            <div class="max-w-7xl mx-auto px-4 flex gap-1 text-xs whitespace-nowrap py-1">
+                <template x-for="tab in studentTabs" :key="tab.id">
+                    <button @click="currentTab = tab.id" 
+                            :class="currentTab === tab.id ? 'text-teal-400 border-b-2 border-teal-400 bg-slate-950 font-bold' : 'text-slate-300 border-transparent hover:text-white'" 
+                            class="py-2.5 px-3.5 rounded-t-xl transition text-xs"
+                            x-text="tab.label"></button>
+                </template>
+            </div>
+        </nav>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-5">
+
+        <!-- ================= واجهة الطلاب ================= -->
+        <div class="space-y-5">
+            
+            <!-- الجدول الأسبوعي -->
+            <section x-show="currentTab === 'schedule'" x-cloak class="grid gap-4 md:grid-cols-2">
+                <template x-for="item in activeSchedules" :key="item.id">
+                    <div :class="darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'" class="p-5 rounded-2xl border shadow-sm space-y-3">
+                        <div class="flex justify-between items-start">
+                            <span class="px-2.5 py-1 text-[11px] font-bold bg-teal-500/10 text-teal-400 rounded-lg" x-text="item.day"></span>
+                            <span :class="darkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-500'" class="text-[11px] font-mono px-2 py-0.5 rounded-md" x-text="item.date"></span>
+                        </div>
+                        <h3 class="font-bold text-base" x-text="item.title"></h3>
+                        <p :class="darkMode ? 'text-slate-400' : 'text-slate-600'" class="text-xs leading-relaxed" x-text="item.desc"></p>
+                        
+                        <!-- زر إنجاز المحتوى -->
+                        <div class="pt-2 flex justify-between items-center border-t border-slate-800/50">
+                            <button @click="toggleComplete(item.id, 'schedule')" :class="isCompleted(item.id, 'schedule') ? 'bg-teal-500 text-white font-bold' : (darkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700')" class="px-3 py-1.5 rounded-xl text-xs transition">
+                                <span x-text="isCompleted(item.id, 'schedule') ? '✓ مكتمل' : '☐ تحديد كمنجز'"></span>
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </section>
+
+            <!-- المحاضرات -->
+            <section x-show="currentTab === 'lectures'" x-cloak class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <template x-for="lec in activeLectures" :key="lec.id">
+                    <div :class="darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'" class="rounded-2xl border overflow-hidden shadow-sm flex flex-col justify-between">
+                        <div class="p-5 space-y-2">
+                            <span class="text-[10px] font-bold bg-teal-500/10 text-teal-400 px-2.5 py-0.5 rounded-md">محاضرة مرئية</span>
+                            <h3 class="font-bold text-base" x-text="lec.title"></h3>
+                            <p :class="darkMode ? 'text-slate-400' : 'text-slate-600'" class="text-xs leading-relaxed" x-text="lec.desc"></p>
+                        </div>
+                        <div :class="darkMode ? 'bg-slate-800/40 border-slate-800' : 'bg-slate-50 border-slate-100'" class="p-3.5 border-t flex items-center justify-between gap-2">
+                            <button @click="openLecture(lec)" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-2.5 rounded-xl text-xs font-bold transition">▶ مشاهدة وقراءة</button>
+                            <button @click="toggleComplete(lec.id, 'lectures')" :class="isCompleted(lec.id, 'lectures') ? 'bg-teal-500 text-white' : (darkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-200 text-slate-700')" class="px-3 py-2.5 rounded-xl text-xs font-bold transition" title="إنجاز المحاضرة">✓</button>
+                        </div>
+                    </div>
+                </template>
+            </section>
+
+            <!-- الملفات والامتحانات والأجوبة -->
+            <template x-for="category in ['files', 'exams', 'answers']" :key="category">
+                <section x-show="currentTab === category" x-cloak class="space-y-3">
+                    <template x-for="item in getActiveItems(category)" :key="item.id">
+                        <div :class="darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'" class="p-4 rounded-2xl border shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div class="w-full space-y-1">
+                                <span class="text-[10px] font-bold bg-teal-500/10 text-teal-400 px-2 py-0.5 rounded" x-text="category === 'files' ? 'ملف PDF' : (category === 'exams' ? 'امتحان' : 'جواب نموذجي')"></span>
+                                <h3 class="font-bold text-sm" x-text="item.title"></h3>
+                                <p :class="darkMode ? 'text-slate-400' : 'text-slate-600'" class="text-xs" x-text="item.desc"></p>
+                            </div>
+
+                            <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                                <button @click="toggleComplete(item.id, category)" :class="isCompleted(item.id, category) ? 'bg-teal-500 text-white' : (darkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700')" class="px-3 py-2.5 rounded-xl text-xs font-bold transition">
+                                    <span x-text="isCompleted(item.id, category) ? '✓ مكتمل' : '☐ إنجاز'"></span>
+                                </button>
+                                <button @click="openMedia(item.url, item.title)" :class="darkMode ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-800'" class="px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap">📥 معاينة أو تحميل</button>
+                            </div>
+                        </div>
+                    </template>
+                </section>
+            </template>
+
+            <!-- قسم التصحيح مع إمكانية رفع صورة الإجابة -->
+            <section x-show="currentTab === 'correction'" x-cloak class="max-w-xl mx-auto rounded-2xl border shadow-sm p-6 space-y-4" :class="darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'">
+                <div>
+                    <h2 class="text-base font-bold">إرسال ورقة الإجابة للتصحيح</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">أدخل اسمك الثلاثي، اختر الامتحان، وارفع صورة إجابتك للتوجيه للبوت.</p>
+                </div>
+                <form @submit.prevent="submitCorrection" class="space-y-3.5">
+                    <div>
+                        <label class="block text-xs font-bold mb-1">اسم الطالب الثلاثي</label>
+                        <input type="text" x-model="correctionForm.name" required placeholder="أدخل اسمك الثلاثي الكامل" :class="darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200'" class="w-full p-3 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-teal-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1">رقم الامتحان أو العنوان</label>
+                        <select x-model="correctionForm.examTitle" required :class="darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200'" class="w-full p-3 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-teal-500">
+                            <option value="">-- اختر الامتحان المراد تصحيحه --</option>
+                            <template x-for="exam in activeExams" :key="exam.id">
+                                <option :value="exam.title" x-text="exam.title"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1">رفع صورة ورقة الإجابة (اختياري)</label>
+                        <input type="file" accept="image/*" @change="handleImageUpload" :class="darkMode ? 'bg-slate-800 border-slate-700 text-white file:bg-slate-700 file:text-teal-400' : 'bg-slate-50 border-slate-200 file:bg-slate-100 file:text-teal-700'" class="w-full p-2 border rounded-xl text-xs file:border-0 file:py-1.5 file:px-3 file:rounded-lg file:text-xs file:font-semibold">
+                        <p class="text-[10px] text-teal-400 mt-1" x-show="correctionForm.imageName" x-text="'تم اختيار الصورة: ' + correctionForm.imageName"></p>
+                    </div>
+                    <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-xl font-bold text-xs shadow transition">إرسال عبر بوت التليغرام (@jihad_contact_bot) 📱</button>
+                </form>
+            </section>
+        </div>
+
+        <!-- ================= لوحة الإدارة المخفية (تتطلب 10 نقرات على أيقونة حرف جـ) ================= -->
+        <div x-show="isAdmin" x-cloak class="space-y-5">
+            <div class="flex justify-between items-center bg-teal-500/10 p-4 rounded-2xl border border-teal-500/30">
+                <div>
+                    <h2 class="font-bold text-sm text-teal-400">⚙️ لوحة تحكم الأستاذ جهاد بيك</h2>
+                    <p class="text-[11px] text-slate-400">إدارة محتوى المنصة بكل سلاسة وأمان تام.</p>
+                </div>
+                <button @click="isAdmin = false" class="bg-slate-800 hover:bg-slate-700 text-white text-xs px-3.5 py-2 rounded-xl">إغلاق لوحة الإدارة ✕</button>
+            </div>
+
+            <div class="flex flex-wrap gap-1.5 border-b pb-3 border-slate-800">
+                <template x-for="tab in adminTabs" :key="tab.id">
+                    <button @click="currentAdminTab = tab.id" 
+                            :class="currentAdminTab === tab.id ? 'bg-teal-600 text-white font-bold' : (darkMode ? 'bg-slate-900 border-slate-800 text-slate-400' : 'bg-white border text-slate-600')" 
+                            class="px-4 py-2 rounded-xl text-xs transition" x-text="tab.label"></button>
+                </template>
+            </div>
+
+            <div :class="darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'" class="rounded-2xl border shadow-sm overflow-hidden">
+                <div :class="darkMode ? 'bg-slate-800/50 border-slate-800' : 'bg-slate-50 border-slate-200'" class="p-4 border-b flex justify-between items-center">
+                    <h3 class="font-bold text-xs">إدارة محتوى القسم الحالي</h3>
+                    <button @click="openEditModal(null)" class="bg-teal-600 text-white px-4 py-2 rounded-xl text-xs font-bold">+ إضافة عنصر جديد</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right text-xs">
+                        <thead :class="darkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'">
+                            <tr>
+                                <th class="p-3.5">العنوان</th>
+                                <th class="p-3.5">الحالة</th>
+                                <th class="p-3.5">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody :class="darkMode ? 'divide-slate-800' : 'divide-slate-100'" class="divide-y">
+                            <template x-for="item in currentAdminData" :key="item.id">
+                                <tr>
+                                    <td class="p-3.5 font-bold" x-text="item.title || item.name"></td>
+                                    <td class="p-3.5">
+                                        <button @click="toggleStatus(item)" :class="item.active ? 'text-teal-400 bg-teal-500/10' : 'text-slate-400 bg-slate-800'" class="px-2.5 py-1 rounded-lg text-[11px] font-bold" x-text="item.active ? 'منشور 🟢' : 'مخفي ⚪'"></button>
+                                    </td>
+                                    <td class="p-3.5 flex gap-1.5">
+                                        <button @click="openEditModal(item)" class="text-blue-400 bg-blue-500/10 px-3 py-1.5 rounded-lg font-bold">تعديل</button>
+                                        <button @click="confirmDelete(item.id)" class="text-red-400 bg-red-500/10 px-3 py-1.5 rounded-lg font-bold">حذف</button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ================= نافذة الرمز السري للإدارة (10 نقرات) ================= -->
+    <div x-show="modals.login" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" x-cloak>
+        <div @click.outside="modals.login = false" :class="darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'" class="rounded-2xl p-5 w-full max-w-sm text-center space-y-3.5 shadow-xl border">
+            <h3 class="font-bold text-sm">🔒 لوحة الإدارة السرية للأستاذ</h3>
+            <p class="text-xs text-slate-400">أدخل الرمز السري الخاص بك:</p>
+            <input type="password" x-model="passCode" placeholder="الرمز السري" :class="darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200'" class="w-full p-2.5 border rounded-xl text-center text-sm outline-none focus:ring-2 focus:ring-teal-500">
+            <div class="flex gap-2">
+                <button @click="modals.login = false" class="flex-1 bg-slate-800 text-slate-300 py-2 rounded-xl text-xs font-bold">إلغاء</button>
+                <button @click="loginAdmin" class="flex-1 bg-teal-600 text-white py-2 rounded-xl text-xs font-bold">دخول</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تعديل / إضافة عنصر -->
+    <div x-show="modals.edit" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" x-cloak>
+        <div :class="darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'" class="rounded-2xl p-5 w-full max-w-md space-y-3.5 max-h-[90vh] overflow-y-auto shadow-xl border">
+            <h3 class="font-bold text-sm border-b pb-2 border-slate-700" x-text="editForm.id ? 'تعديل العنصر' : 'إضافة عنصر جديد'"></h3>
+            <div class="space-y-2.5 text-xs">
+                <input type="text" x-model="editForm.title" placeholder="العنوان" :class="darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200'" class="w-full p-2.5 border rounded-xl outline-none">
+                <textarea x-model="editForm.desc" placeholder="الوصف" :class="darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200'" class="w-full p-2.5 border rounded-xl outline-none"></textarea>
+                <input x-show="currentAdminTab === 'schedule'" type="text" x-model="editForm.day" placeholder="اليوم (مثل الأحد)" :class="darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200'" class="w-full p-2.5 border rounded-xl outline-none">
+                <input x-show="currentAdminTab === 'schedule'" type="date" x-model="editForm.date" :class="darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200'" class="w-full p-2.5 border rounded-xl outline-none">
+                <input x-show="currentAdminTab !== 'schedule'" type="text" x-model="editForm.url" placeholder="رابط اليوتيوب أو PDF" :class="darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200'" class="w-full p-2.5 border rounded-xl outline-none text-left" dir="ltr">
+            </div>
+            <div class="flex gap-2 pt-1">
+                <button @click="modals.edit = false" class="flex-1 bg-slate-800 text-slate-300 py-2.5 rounded-xl font-bold text-xs">إلغاء</button>
+                <button @click="saveData" class="flex-1 bg-teal-600 text-white py-2.5 rounded-xl font-bold text-xs shadow">حفظ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تأكيد الحذف -->
+    <div x-show="modals.delete" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" x-cloak>
+        <div :class="darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'" class="rounded-2xl p-5 w-full max-w-sm text-center space-y-3.5 shadow-xl border">
+            <h3 class="font-bold text-sm text-red-500">تأكيد الحذف</h3>
+            <p class="text-xs text-slate-400">هل أنت متأكد من حذف هذا العنصر نهائياً؟</p>
+            <div class="flex gap-2">
+                <button @click="modals.delete = false" class="flex-1 bg-slate-800 text-slate-300 py-2 rounded-xl text-xs font-bold">إلغاء</button>
+                <button @click="deleteItem" class="flex-1 bg-red-600 text-white py-2 rounded-xl text-xs font-bold">حذف</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة عرض المحاضرة مع عداد وقراءة بالتفصيل (طولي / عرضي) -->
+    <div x-show="modals.lectureView" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-2 md:p-4" x-cloak>
+        <div :class="darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'" class="rounded-2xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden shadow-2xl border">
+            <div class="flex justify-between items-center p-3.5 border-b border-slate-700 bg-slate-800/40">
+                <div class="flex items-center gap-3">
+                    <h3 class="font-bold text-xs truncate" x-text="lectureData.title"></h3>
+                    <!-- عداد وقت القراءة -->
+                    <span class="bg-teal-500/20 text-teal-400 px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold" x-text="'⏱️ ' + lectureTimerText"></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button @click="toggleViewMode" class="bg-slate-800 text-teal-400 text-xs px-2.5 py-1.5 rounded-lg border border-slate-700" x-text="isLandscape ? '🔄 وضع الطول' : '🔄 وضع العرض'"></button>
+                    <button @click="modals.lectureView = false" class="text-slate-400 hover:text-red-400 font-bold text-lg px-2">&times;</button>
+                </div>
+            </div>
+            <div class="flex-grow bg-slate-950 p-2 flex items-center justify-center overflow-auto">
+                <div :class="isLandscape ? 'w-full h-full' : 'w-full max-w-md h-full'" class="transition-all duration-300">
+                    <iframe :src="lectureData.url" class="w-full h-full rounded-xl border-0" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة عرض الملفات أو الـ PDF -->
+    <div x-show="modals.media" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-2 md:p-6" x-cloak>
+        <div @click.outside="modals.media = false" :class="darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'" class="rounded-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden shadow-2xl border">
+            <div class="flex justify-between items-center p-3.5 border-b border-slate-700 bg-slate-800/40">
+                <h3 class="font-bold text-xs truncate" x-text="mediaData.title"></h3>
+                <button @click="modals.media = false" class="text-slate-400 hover:text-red-400 font-bold text-lg px-2">&times;</button>
+            </div>
+            <div class="flex-grow bg-slate-950">
+                <iframe :src="mediaData.url" class="w-full h-full border-0" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة الإشعار التحفيزي (أحسنت يا دكتور المستقبل) -->
+    <div x-show="modals.congrats" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" x-cloak>
+        <div :class="darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'" class="rounded-2xl p-6 w-full max-w-sm text-center space-y-3 shadow-2xl border">
+            <div class="w-12 h-12 bg-teal-500/20 text-teal-400 rounded-full flex items-center justify-center mx-auto text-xl">🌟</div>
+            <h3 class="font-bold text-base text-teal-400">أحسنت يا دكتور المستقبل</h3>
+            <p class="text-xs text-slate-300">لقد أتممت إنجاز هذا المحتوى بنجاح، استمر في تألقك!</p>
+            <button @click="modals.congrats = false" class="w-full bg-teal-600 text-white py-2.5 rounded-xl font-bold text-xs shadow">استمرار 🚀</button>
+        </div>
+    </div>
+
+    <script>
+        function jihadPlatform() {
+            return {
+                darkMode: true,
+                isAdmin: false,
+                currentTab: 'schedule',
+                currentAdminTab: 'lectures',
+                passCode: '',
+                logoClicks: 0,
+                clickTimer: null,
+                
+                studentTabs: [
+                    { id: 'schedule', label: '📅 الجدول' },
+                    { id: 'lectures', label: '🎥 المحاضرات' },
+                    { id: 'files', label: '📁 الملفات' },
+                    { id: 'exams', label: '📝 الامتحانات' },
+                    { id: 'answers', label: '✅ الأجوبة' },
+                    { id: 'correction', label: '📤 التصحيح' }
+                ],
+                
+                adminTabs: [
+                    { id: 'schedule', label: 'الجدول' },
+                    { id: 'lectures', label: 'المحاضرات' },
+                    { id: 'files', label: 'الملفات' },
+                    { id: 'exams', label: 'الامتحانات' },
+                    { id: 'answers', label: 'الأجوبة' }
+                ],
+
+                modals: { login: false, edit: false, delete: false, media: false, lectureView: false, congrats: false },
+                editForm: {},
+                deleteId: null,
+                mediaData: { url: '', title: '' },
+                lectureData: { url: '', title: '' },
+                isLandscape: true,
+                lectureSeconds: 0,
+                timerInterval: null,
+                correctionForm: { name: '', examTitle: '', imageName: '' },
+
+                data: { schedule: [], lectures: [], files: [], exams: [], answers: [] },
+                completedItems: {},
+                notifications: [],
+
+                initPlatform() {
+                    const savedTheme = localStorage.getItem('jihadDarkMode');
+                    if (savedTheme !== null) this.darkMode = JSON.parse(savedTheme);
+
+                    const saved = localStorage.getItem('jihadDataV6');
+                    const savedCompletions = localStorage.getItem('jihadCompletionsV6');
+                    const savedNotifs = localStorage.getItem('jihadNotifsV6');
+                    
+                    if (saved) {
+                        this.data = JSON.parse(saved);
+                    } else {
+                        // بيانات افتراضية تجريبية
+                        this.data.schedule = [{ id: 1, day: 'الأحد', date: '2026-11-01', title: 'جدول الفصل الثالث: الاتزان الأيوني', desc: 'مقدمة في الإلكتروليتات والمحاليل المائية.', active: true }];
+                        this.data.lectures = [{ id: 1, title: 'المحاضرة الأولى: الإلكتروليتات القوية والضعيفة', desc: 'شرح مبسط ووزاري شامل للاتزان الأيوني.', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', active: true }];
+                        this.data.files = [{ id: 1, title: 'ملف ملزمة الفصل الثالث كاملة', desc: 'ملزمة متميزة بصيغة PDF.', url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', active: true }];
+                        this.data.exams = [{ id: 1, title: 'امتحان يومي رقم 1 (الاتزان الأيوني)', desc: 'اختبر نفسك في المحاضرة الأولى.', url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', active: true }];
+                        this.data.answers = [{ id: 1, title: 'الجواب النموذجي لامتحان رقم 1', desc: 'التفاصيل الكاملة والحل النموذجي.', url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', active: true }];
+                        this.syncStorage();
+                    }
+
+                    if (savedCompletions) this.completedItems = JSON.parse(savedCompletions);
+
+                    if (savedNotifs) {
+                        this.notifications = JSON.parse(savedNotifs);
+                    } else {
+                        this.notifications = [{ id: Date.now(), title: 'أهلاً بك يا دكتور المستقبل', desc: 'تم إطلاق المنصة المحدثة لكيمياء السادس العلمي.', date: 'اليوم' }];
+                        this.syncNotifStorage();
+                    }
+                },
+
+                handleLogoClick() {
+                    this.logoClicks++;
+                    if (this.clickTimer) clearTimeout(this.clickTimer);
+                    
+                    if (this.logoClicks >= 10) {
+                        this.logoClicks = 0;
+                        this.modals.login = true;
+                    } else {
+                        this.clickTimer = setTimeout(() => { this.logoClicks = 0; }, 1500);
+                    }
+                },
+
+                toggleDarkMode() {
+                    this.darkMode = !this.darkMode;
+                    localStorage.setItem('jihadDarkMode', JSON.stringify(this.darkMode));
+                },
+
+                syncStorage() { localStorage.setItem('jihadDataV6', JSON.stringify(this.data)); },
+                syncCompletions() { localStorage.setItem('jihadCompletionsV6', JSON.stringify(this.completedItems)); },
+                syncNotifStorage() { localStorage.setItem('jihadNotifsV6', JSON.stringify(this.notifications)); },
+
+                loginAdmin() {
+                    if (this.passCode === 'jihad2026') {
+                        this.isAdmin = true;
+                        this.modals.login = false;
+                        this.passCode = '';
+                    } else {
+                        alert('⚠️ الرمز السري غير صحيح!');
+                    }
+                },
+
+                get activeSchedules() { return this.data.schedule.filter(i => i.active); },
+                get activeLectures() { return this.data.lectures.filter(i => i.active); },
+                get activeExams() { return this.data.exams.filter(i => i.active); },
+                getActiveItems(cat) { return this.data[cat]?.filter(i => i.active) || []; },
+                get currentAdminData() { return this.data[this.currentAdminTab] || []; },
+
+                toggleComplete(id, cat) {
+                    const key = cat + '_' + id;
+                    this.completedItems[key] = !this.completedItems[key];
+                    this.syncCompletions();
+                    if (this.completedItems[key]) {
+                        this.modals.congrats = true;
+                    }
+                },
+
+                isCompleted(id, cat) {
+                    return !!this.completedItems[cat + '_' + id];
+                },
+
+                openLecture(lec) {
+                    this.lectureData = { url: lec.url, title: lec.title };
+                    this.modals.lectureView = true;
+                    this.lectureSeconds = 0;
+                    if (this.timerInterval) clearInterval(this.timerInterval);
+                    this.timerInterval = setInterval(() => { this.lectureSeconds++; }, 1000);
+                },
+
+                toggleViewMode() {
+                    this.isLandscape = !this.isLandscape;
+                },
+
+                get lectureTimerText() {
+                    const m = Math.floor(this.lectureSeconds / 60).toString().padStart(2, '0');
+                    const s = (this.lectureSeconds % 60).toString().padStart(2, '0');
+                    return `${m}:${s}`;
+                },
+
+                openMedia(url, title) {
+                    this.mediaData = { url, title };
+                    this.modals.media = true;
+                },
+
+                handleImageUpload(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        this.correctionForm.imageName = file.name;
+                    }
+                },
+
+                submitCorrection() {
+                    const imgText = this.correctionForm.imageName ? ` (مع إرفاق صورة: ${this.correctionForm.imageName})` : '';
+                    const msg = `مرحباً أستاذ جهاد، أنا الطالب: ${this.correctionForm.name}، أود إرسال ورقة إجابة الامتحان: ${this.correctionForm.examTitle} للتصحيح.${imgText}`;
+                    window.open(`https://t.me/jihad_contact_bot?text=${encodeURIComponent(msg)}`, '_blank');
+                    this.correctionForm = { name: '', examTitle: '', imageName: '' };
+                },
+
+                toggleStatus(item) {
+                    item.active = !item.active;
+                    this.syncStorage();
+                },
+
+                openEditModal(item) {
+                    this.editForm = item ? JSON.parse(JSON.stringify(item)) : { id: null, title: '', desc: '', active: true, url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', day: '', date: '' };
+                    this.modals.edit = true;
+                },
+
+                saveData() {
+                    if (!this.editForm.title) return;
+                    const isNew = !this.editForm.id;
+                    if (isNew) {
+                        this.editForm.id = Date.now();
+                        this.data[this.currentAdminTab].push({ ...this.editForm });
+                        
+                        this.notifications.unshift({
+                            id: Date.now(),
+                            title: '📌 تمت إضافة محتوى جديد',
+                            desc: `تم نشر (${this.editForm.title}) في القسم بنجاح.`,
+                            date: new Date().toLocaleDateString('ar-IQ')
+                        });
+                        this.syncNotifStorage();
+                    } else {
+                        const idx = this.data[this.currentAdminTab].findIndex(i => i.id === this.editForm.id);
+                        if (idx > -1) this.data[this.currentAdminTab][idx] = { ...this.editForm };
+                    }
+                    this.syncStorage();
+                    this.modals.edit = false;
+                },
+
+                confirmDelete(id) {
+                    this.deleteId = id;
+                    this.modals.delete = true;
+                },
+
+                deleteItem() {
+                    this.data[this.currentAdminTab] = this.data[this.currentAdminTab].filter(i => i.id !== this.deleteId);
+                    this.syncStorage();
+                    this.modals.delete = false;
+                },
+
+                clearNotifications() {
+                    this.notifications = [];
+                    this.syncNotifStorage();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
